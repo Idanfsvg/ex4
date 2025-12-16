@@ -208,7 +208,6 @@ void task4SolveZipBoard()
     {
         printf("No solution exists.\n");
     }
-    printf("All tiles visited in board? %d\n", task4HelperAllTilesVisited(board, size, 0, 0, highest));
 }
 
 
@@ -238,7 +237,6 @@ void task5SolveSudoku()
 /***************************
 ********* HELPERS **********
 ****************************/
-
 
 int readTerms(char terms[][LONGEST_TERM+1], int maxNumOfTerms, char type[])
 {
@@ -292,28 +290,30 @@ int task4HelperHighestInBoard(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE],
 }
 
 int task4HelperAllTilesVisited(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE],
-                            int size, int row, int col, int lowest)
+                            int size, int row, int col, int num)
 {
     if (board[row][col] == 0)
     {
-        lowest = board[row][col];
+        num = board[row][col];
+    } else if (board[row][col] == VISITED) {
+        num = board[row][col];
     }
     if (col + 1 < size)
     {
-        int right = task4HelperAllTilesVisited(board, size, row, col + 1, lowest);
-        if (right < lowest)
+        int right = task4HelperAllTilesVisited(board, size, row, col + 1, num);
+        if (right == 0)
         {
-            lowest = right;
+            num = right;
         }
         if (row + 1 < size && col == 0) {
-            int down = task4HelperAllTilesVisited(board, size, row + 1, col, lowest);
-            if (down < lowest)
+            int down = task4HelperAllTilesVisited(board, size, row + 1, col, num);
+            if (down == 0)
             {
-                lowest = down;
+                num = down;
             }
         }
     }
-    return lowest;
+    return num;
 }
 
 void printSudoku(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE])
@@ -434,7 +434,7 @@ int task4SolveZipBoardImplementation(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_S
     int originalValue = board[startR][startC];
     int currentValue = board[startR][startC];
     int highestInBoard = task4HelperHighestInBoard(board, size, 0, 0, SMALLEST_NUMBER);
-    int lowestInBoard = task4HelperAllTilesVisited(board, size, 0, 0, highestInBoard);
+    int lowestInBoard = task4HelperAllTilesVisited(board, size, 0, 0, VISITED);
 
     // Check cell value and change it if needed
     if (originalValue != 0)
