@@ -27,6 +27,12 @@
 #define SUDOKU_GRID_SIZE 9
 #define SUDOKU_SUBGRID_SIZE 3
 
+/***************************
+*** DEFINED CONSTANTS ***
+****************************/
+
+#define SMALLEST_NUMBER 1
+#define VISITED -2
 
 /***************************
 * USER INTEFACE PROTOTYPES *
@@ -57,9 +63,10 @@ int task5SolveSudokuImplementation(int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE]);
 *******************************/
 
 int readTerms(char[][LONGEST_TERM+1], int, char[]);
+int task3HelperNumOfTerms(int, char[][LONGEST_TERM+1]);
+int task4HelperHighestInBoard(int[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE], int, int, int, int);
+int task4HelperAllTilesVisited(int[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE], int, int, int, int);
 void printSudoku(int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE]);
-
-
 
 /******************************
 ********** MAIN MENU **********
@@ -184,6 +191,7 @@ void task4SolveZipBoard()
             }
         }
     }
+
     if (task4SolveZipBoardImplementation(board, solution, size, row, col, highest))
     {
         printf("Solution:\n");
@@ -200,12 +208,12 @@ void task4SolveZipBoard()
     {
         printf("No solution exists.\n");
     }
+    printf("All tiles visited in board? %d\n", task4HelperAllTilesVisited(board, size, 0, 0, highest));
 }
 
 
 void task5SolveSudoku()
 {
-    printf("Please enter the sudoku board:\n");
     int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE] = {0};
     for (int i = 0; i < SUDOKU_GRID_SIZE; i++)
     {
@@ -223,6 +231,7 @@ void task5SolveSudoku()
     {
         printf("No solution exists.\n");
     }
+
 }
 
 
@@ -231,7 +240,8 @@ void task5SolveSudoku()
 ****************************/
 
 
-int readTerms(char terms[][LONGEST_TERM+1], int maxNumOfTerms, char type[]){
+int readTerms(char terms[][LONGEST_TERM+1], int maxNumOfTerms, char type[])
+{
     int termsCount;
     printf("Please insert number of %s:\n", type);
     scanf("%d", &termsCount);
@@ -246,6 +256,65 @@ int readTerms(char terms[][LONGEST_TERM+1], int maxNumOfTerms, char type[]){
     return termsCount;
 }
 
+int task3HelperNumOfTerms(int i, char terms[][LONGEST_TERM+1])
+{
+    if ((terms[i][0] != '\0') && (i < MAX_NUMBER_OF_TERMS))
+    {
+        i = task3HelperNumOfTerms(i+1, terms);
+    }
+    return i;
+}
+
+int task4HelperHighestInBoard(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE],
+                            int size, int row, int col, int highest)
+{
+    if (board[row][col] > highest)
+    {
+        highest = board[row][col];
+    }
+    if (col + 1 < size)
+    {
+        int right = task4HelperHighestInBoard(board, size, row, col + 1, highest);
+        if (right > highest)
+        {
+            highest = right;
+        }
+        if (row + 1 < size && col == 0) {
+            int down = task4HelperHighestInBoard(board, size, row + 1, col, highest);
+            if (down > highest)
+            {
+                highest = down;
+            }
+        } 
+    }
+    
+    return highest;
+}
+
+int task4HelperAllTilesVisited(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE],
+                            int size, int row, int col, int lowest)
+{
+    if (board[row][col] == 0)
+    {
+        lowest = board[row][col];
+    }
+    if (col + 1 < size)
+    {
+        int right = task4HelperAllTilesVisited(board, size, row, col + 1, lowest);
+        if (right < lowest)
+        {
+            lowest = right;
+        }
+        if (row + 1 < size && col == 0) {
+            int down = task4HelperAllTilesVisited(board, size, row + 1, col, lowest);
+            if (down < lowest)
+            {
+                lowest = down;
+            }
+        }
+    }
+    return lowest;
+}
 
 void printSudoku(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE])
 {
@@ -268,26 +337,88 @@ void printSudoku(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE])
     }
 }
 
+
 /***************************
 *********** TODO ***********
 ****************************/
 
 
-void task1ReversePhraseImplementation(){
-
+void task1ReversePhraseImplementation()
+{
+    char c;
+    int i = 1;
+    scanf("%c", &c);
+    if (c != '\n')
+    {
+        i--;
+        task1ReversePhraseImplementation();
+    }
+    if (i)
+    {
+        printf("The reversed phrase is:");
+    }
+    printf("%c", c);
 }
 
 
 int task2CheckPalindromeImplementation(int length)
 {
+    int c1, c2;
+    c1 = getchar();
+    if (!(length - 2))
+    {
+        c2 = getchar();
+        if (c1 == c2)
+        {
+            return 1;
+        }
+        return 0;
+    } else if (!(length - 1)) {
+        return 1;
+    }
+    if (task2CheckPalindromeImplementation(length - 2)) {
+        c2 = getchar();
+        if (c1 == c2)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    getchar();
     return 0;
 }
 
 
 void task3GenerateSentencesImplementation(char subjects[][LONGEST_TERM+1], int subjectsCount,
-                                            char verbs[][LONGEST_TERM+1], int verbsCount,
-                                            char objects[][LONGEST_TERM+1], int objectsCount){
-
+                                        char verbs[][LONGEST_TERM+1], int verbsCount,
+                                        char objects[][LONGEST_TERM+1], int objectsCount)
+{
+    char sentence[LONGEST_SENTENCE+1] = "";
+    int numSubs = task3HelperNumOfTerms(0, subjects);
+    int numVerbs = task3HelperNumOfTerms(0, verbs);
+    int numObs = task3HelperNumOfTerms(0, objects);
+    int currentCount = (numSubs - subjectsCount) * numVerbs * numObs +
+        (numVerbs - verbsCount) * numObs + (numObs - objectsCount) + 1;
+    strcat(sentence, subjects[numSubs - subjectsCount]);
+    strcat(sentence, " ");
+    strcat(sentence, verbs[numVerbs - verbsCount]);
+    strcat(sentence, " ");
+    strcat(sentence, objects[numObs - objectsCount]);
+    if (objectsCount > 0 && verbsCount > 0 && subjectsCount > 0 &&
+        subjectsCount <= numSubs && verbsCount <= numVerbs && objectsCount <= numObs)
+    {
+        printf("%d. %s\n", currentCount, sentence);
+        task3GenerateSentencesImplementation(subjects, subjectsCount, verbs, verbsCount, objects, objectsCount - 1);
+        if (verbsCount > 0 && numObs == objectsCount)
+        {
+            task3GenerateSentencesImplementation(subjects, subjectsCount, verbs, verbsCount - 1, objects, numObs);
+            if (subjectsCount > 0 && numVerbs == verbsCount)
+            {
+                task3GenerateSentencesImplementation(subjects, subjectsCount - 1, verbs, numVerbs, objects, numObs);
+            }
+        }
+    }
+    return;
 }
 
 
@@ -295,6 +426,68 @@ int task4SolveZipBoardImplementation(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_S
                                     char solution[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE],
                                     int size, int startR, int startC, int highest)
 {
+    // Check boundaries
+    if (startR < 0 || startC < 0 || startR >= size || startC >= size)
+    {
+        return 0;
+    }
+    int originalValue = board[startR][startC];
+    int currentValue = board[startR][startC];
+    int highestInBoard = task4HelperHighestInBoard(board, size, 0, 0, SMALLEST_NUMBER);
+    int lowestInBoard = task4HelperAllTilesVisited(board, size, 0, 0, highestInBoard);
+
+    // Check cell value and change it if needed
+    if (originalValue != 0)
+    {
+        if (originalValue == highest + 1)
+        {
+            if (originalValue == highestInBoard)
+            {
+                if (lowestInBoard == VISITED)
+                {
+                    return 1;
+                }
+                return 0;
+            }
+            highest = originalValue;
+            return task4SolveZipBoardImplementation(board, solution, size, startR, startC, highest);
+        } else if (originalValue == SMALLEST_NUMBER)
+        {
+            highest = originalValue;
+        } else if (originalValue == VISITED || originalValue > highest)
+        {
+            return 0;
+        }
+    }
+
+    board[startR][startC] = VISITED; // Mark as visited
+    currentValue = board[startR][startC];
+
+    if (task4SolveZipBoardImplementation(board, solution, size, startR - 1, startC, highest))
+    {
+        solution[startR][startC] = 'U';
+        return 1;
+    }
+
+    if (task4SolveZipBoardImplementation(board, solution, size, startR + 1, startC, highest))
+    {
+        solution[startR][startC] = 'D';
+        return 1;
+    }
+
+    if (task4SolveZipBoardImplementation(board, solution, size, startR, startC - 1, highest))
+    {
+        solution[startR][startC] = 'L';
+        return 1;
+    }
+
+    if (task4SolveZipBoardImplementation(board, solution, size, startR, startC + 1, highest))
+    {
+        solution[startR][startC] = 'R';
+        return 1;
+    }
+    board[startR][startC] = originalValue; // Backtracking
+    
     return 0;
 }
 
