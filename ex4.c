@@ -31,8 +31,11 @@
 *** DEFINED CONSTANTS ***
 ****************************/
 
-#define SMALLEST_NUMBER 1
+#define SMALLEST_NUMBER_ZIP 1
 #define VISITED -2
+
+#define EMPTY_CELL 0
+#define SMALLEST_NUMBER_SUDOKU 1
 
 /***************************
 * USER INTEFACE PROTOTYPES *
@@ -67,6 +70,11 @@ int task3HelperNumOfTerms(int, char[][LONGEST_TERM+1]);
 int task4HelperHighestInBoard(int[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE], int, int, int, int);
 int task4HelperAllTilesVisited(int[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE], int, int, int, int);
 void printSudoku(int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE]);
+int task5HelperSudokuSolver(int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE], int, int, int, int);
+int task5HelperCheckRow(int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE], int, int, int, int);
+int task5HelperCheckCol(int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE], int, int, int, int);
+int task5HelperCheckBox(int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE], int, int, int, int);
+int task5HelperSetRowCol(int);
 
 /******************************
 ********** MAIN MENU **********
@@ -213,6 +221,7 @@ void task4SolveZipBoard()
 
 void task5SolveSudoku()
 {
+    printf("Please enter the sudoku board:\n");
     int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE] = {0};
     for (int i = 0; i < SUDOKU_GRID_SIZE; i++)
     {
@@ -237,7 +246,7 @@ void task5SolveSudoku()
 /***************************
 ********* HELPERS **********
 ****************************/
-
+// Task 3
 int readTerms(char terms[][LONGEST_TERM+1], int maxNumOfTerms, char type[])
 {
     int termsCount;
@@ -263,6 +272,8 @@ int task3HelperNumOfTerms(int i, char terms[][LONGEST_TERM+1])
     return i;
 }
 
+
+// Task 4
 int task4HelperHighestInBoard(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE],
                             int size, int row, int col, int highest)
 {
@@ -316,6 +327,8 @@ int task4HelperAllTilesVisited(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_SIZE],
     return num;
 }
 
+
+// Task 5
 void printSudoku(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE])
 {
     printf("+-------+-------+-------+\n");
@@ -337,6 +350,102 @@ void printSudoku(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE])
     }
 }
 
+int task5HelperSudokuSolver(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE], int size, int row, int col, int num)
+{
+    if (board[row][col] == EMPTY_CELL)
+    {
+        if (row < SUDOKU_GRID_SIZE && col < SUDOKU_GRID_SIZE)
+        {
+            // Sets temp row and col to the top-left corner of the current box
+            int tempR = task5HelperSetRowCol(row);
+            int tempC = task5HelperSetRowCol(col);
+        
+            // Checks if num can be placed in the cell
+            int boxCheck = task5HelperCheckBox(board, size, tempR, tempC, num);
+            int colCheck = task5HelperCheckCol(board, size, 0, col, num);
+            int rowCheck = task5HelperCheckRow(board, size, row, 0, num);
+
+            if (boxCheck && colCheck && rowCheck)
+            {
+                board[row][col] = num;
+                printf("Placing %d at (%d,%d)\n", board[row][col], row, col);
+            } else {
+                if (num <= SUDOKU_GRID_SIZE)
+                {
+                    return task5HelperSudokuSolver(board, size, row, col, num + 1);
+                }
+                return 0;
+            }
+        }
+    }
+    if (col + 1 < SUDOKU_GRID_SIZE && row + 1 < SUDOKU_GRID_SIZE &&
+        task5HelperSudokuSolver(board, size, row, col + 1, SMALLEST_NUMBER_SUDOKU))
+    {
+        if (!col && task5HelperSudokuSolver(board, size, row + 1, col, SMALLEST_NUMBER_SUDOKU))
+        {
+            return 1;
+        }
+    }
+    return 1;
+}
+
+int task5HelperCheckBox(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE], int size, int row, int col, int num)
+{
+    if (col < SUDOKU_GRID_SIZE && row < SUDOKU_GRID_SIZE && 1 && board[row][col] == num)
+    {
+        return 0;
+    }
+    if (col < SUDOKU_GRID_SIZE && row < SUDOKU_GRID_SIZE && col < (col / SUDOKU_SUBGRID_SIZE + 1) * SUDOKU_SUBGRID_SIZE)
+    {
+        if (task5HelperCheckBox(board, size, row, col + 1, num))
+        {
+            if (!(col % SUDOKU_SUBGRID_SIZE))
+            {
+                if (task5HelperCheckBox(board, size, row + 1, col, num))
+                {
+                    return 1;
+                }
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int task5HelperCheckRow(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE], int size, int row, int col, int num)
+{
+    if (board[row][col] == num)
+    {
+        return 0;
+    }
+    if (col + 1 < SUDOKU_GRID_SIZE)
+    {
+        return task5HelperCheckRow(board, size, row, col + 1, num);
+    }
+    return 1;
+}
+
+int task5HelperCheckCol(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE], int size, int row, int col, int num)
+{
+    if (board[row][col] == num)
+    {
+        return 0;
+    }
+    if (row + 1 < SUDOKU_GRID_SIZE)
+    {
+        return task5HelperCheckCol(board, size, row + 1, col, num);
+    }
+    return 1;
+}
+
+int task5HelperSetRowCol(int index)
+{
+    if (index % SUDOKU_SUBGRID_SIZE)
+    {
+        index = task5HelperSetRowCol(index - 1);
+    }
+    return index;
+}
 
 /***************************
 *********** TODO ***********
@@ -365,6 +474,7 @@ int task2CheckPalindromeImplementation(int length)
 {
     int c1, c2;
     c1 = getchar();
+
     if (!(length - 2))
     {
         c2 = getchar();
@@ -373,9 +483,10 @@ int task2CheckPalindromeImplementation(int length)
             return 1;
         }
         return 0;
-    } else if (!(length - 1)) {
+    } else if (!(length - 1) || !length) {
         return 1;
     }
+    
     if (task2CheckPalindromeImplementation(length - 2)) {
         c2 = getchar();
         if (c1 == c2)
@@ -408,13 +519,13 @@ void task3GenerateSentencesImplementation(char subjects[][LONGEST_TERM+1], int s
         subjectsCount <= numSubs && verbsCount <= numVerbs && objectsCount <= numObs)
     {
         printf("%d. %s\n", currentCount, sentence);
-        task3GenerateSentencesImplementation(subjects, subjectsCount, verbs, verbsCount, objects, objectsCount - 1);
+        task3GenerateSentencesImplementation(subjects, subjectsCount, verbs, verbsCount, objects, objectsCount-1);
         if (verbsCount > 0 && numObs == objectsCount)
         {
-            task3GenerateSentencesImplementation(subjects, subjectsCount, verbs, verbsCount - 1, objects, numObs);
+            task3GenerateSentencesImplementation(subjects, subjectsCount, verbs, verbsCount-1, objects, numObs);
             if (subjectsCount > 0 && numVerbs == verbsCount)
             {
-                task3GenerateSentencesImplementation(subjects, subjectsCount - 1, verbs, numVerbs, objects, numObs);
+                task3GenerateSentencesImplementation(subjects, subjectsCount-1, verbs, numVerbs, objects, numObs);
             }
         }
     }
@@ -432,8 +543,7 @@ int task4SolveZipBoardImplementation(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_S
         return 0;
     }
     int originalValue = board[startR][startC];
-    int currentValue = board[startR][startC];
-    int highestInBoard = task4HelperHighestInBoard(board, size, 0, 0, SMALLEST_NUMBER);
+    int highestInBoard = task4HelperHighestInBoard(board, size, 0, 0, SMALLEST_NUMBER_ZIP);
     int lowestInBoard = task4HelperAllTilesVisited(board, size, 0, 0, VISITED);
 
     // Check cell value and change it if needed
@@ -451,7 +561,7 @@ int task4SolveZipBoardImplementation(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_S
             }
             highest = originalValue;
             return task4SolveZipBoardImplementation(board, solution, size, startR, startC, highest);
-        } else if (originalValue == SMALLEST_NUMBER)
+        } else if (originalValue == SMALLEST_NUMBER_ZIP)
         {
             highest = originalValue;
         } else if (originalValue == VISITED || originalValue > highest)
@@ -461,7 +571,6 @@ int task4SolveZipBoardImplementation(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_S
     }
 
     board[startR][startC] = VISITED; // Mark as visited
-    currentValue = board[startR][startC];
 
     if (task4SolveZipBoardImplementation(board, solution, size, startR - 1, startC, highest))
     {
@@ -494,5 +603,9 @@ int task4SolveZipBoardImplementation(int board[ZIP_MAX_GRID_SIZE][ZIP_MAX_GRID_S
 
 int task5SolveSudokuImplementation(int board[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE])
 {
+    if (task5HelperSudokuSolver(board, SUDOKU_GRID_SIZE, 0, 0, SMALLEST_NUMBER_ZIP))
+    {
+        return 1;
+    }
     return 0;
 }
